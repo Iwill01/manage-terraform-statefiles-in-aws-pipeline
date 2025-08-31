@@ -44,23 +44,26 @@ resource "aws_s3_bucket_public_access_block" "s3_bucket_access" {
   restrict_public_buckets = true
 }
 
-#### CodeCommit
 
-resource "aws_codecommit_repository" "codecommit_repo" {
-  #checkov:skip=CKV2_AWS_37: CodeCommit approval step not needed
-  repository_name = "codebuild-terraform"
-  description     = "Repository for application source code"
-}
 
-#### CodeBuild
+#### CodeBuild source github
 
 resource "aws_codebuild_project" "codebuild_project_plan" {
   name         = var.codebuild_plan_project_name
-  description  = "Terraform plan for deploying lambda"
   service_role = aws_iam_role.codebuild_role.arn
+  description  = "Terraform plan for deploying lambda"
 
-  artifacts {
-    type = "NO_ARTIFACTS"
+  source {
+    type                = "GITHUB"
+    location            = "https://github.com/Iwill01/manage-terraform-statefiles-in-aws-pipeline.git"
+    buildspec           = var.buildspec_plan
+    git_clone_depth     = 0
+    report_build_status = true
+
+    auth {
+      type     = "OAUTH"
+      resource = var.github_connection_arn  # pass in connection ARN
+    }
   }
 
   environment {
@@ -69,11 +72,8 @@ resource "aws_codebuild_project" "codebuild_project_plan" {
     type         = var.container_type
   }
 
-  source {
-    type            = "CODECOMMIT"
-    buildspec       = var.buildspec_plan
-    location        = aws_codecommit_repository.codecommit_repo.clone_url_http
-    git_clone_depth = 0
+  artifacts {
+    type = "NO_ARTIFACTS"
   }
 
   logs_config {
@@ -83,6 +83,7 @@ resource "aws_codebuild_project" "codebuild_project_plan" {
     }
   }
 }
+
 
 resource "aws_codebuild_project" "codebuild_project_apply" {
   name         = var.codebuild_apply_project_name
