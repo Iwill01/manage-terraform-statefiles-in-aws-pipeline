@@ -3,14 +3,16 @@ variable "aws_region" {
   default = "eu-central-1"
 }
 
-variable "codecommit_repository_url" {
-  type    = string
-  default = "https://git-codecommit.eu-central-1.amazonaws.com/v1/repos/codebuild-terraform"
+variable "github_connection_arn" {
+  description = "Codestar GitHub connection ARN"
+  type        = string
+  default = "arn:aws:codeconnections:us-east-2:480314817413:connection/36a216a4-d284-41a3-8719-dbb3c8e572f5"
 }
+
 
 variable "s3_bucket_name" {
   type    = string
-  default = "tfbackend-bucket"
+  default = "tfbackend-bucket_v1"
 }
 
 variable "compute_type" {
